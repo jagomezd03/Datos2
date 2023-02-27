@@ -9,11 +9,13 @@ const int mod = 100007;
 int dx[] = {-1, 1, 0, 0};
 int dy[] = {0, 0, -1, 1};
 
+//Definimos los limites del problema y variables para facilitarnos el problema
 bool vis[11][11];
 char api[13][13][10], ld[77][100];
 int n, r, c, pos[2][222], value[13][13], cnt[222], vv, st[222], lst[44], qt[222], ans[44], at[2][222], mat[13][13], cnt_lst, ep[222], num[mod];
 long long hash_[mod][107], big_mod = (long long)100000009 * (long long)100000009, ex[111];
 
+//Definir el estado de la posicion
 bool judge(int x, int y, int state)
 {
 	int i, j, s, p, q, vv, temp1, temp2, temp;
@@ -58,6 +60,7 @@ bool judge(int x, int y, int state)
 	}
 	return false;
 }
+//Lo creamos para saber donde ubicar
 void bfs(point can_lst[], int &cnt_can, int id)
 {
 	int i, j, s, p, q, x, y, temp1, temp2, temp;
@@ -104,6 +107,7 @@ void bfs(point can_lst[], int &cnt_can, int id)
 
 
 }
+//creamos para determinar si tiene salida
 bool dfs(int id, int state, long long hs)
 {
 	int la, id_r, id_c, i, j, s, p, q, vv, nst, x, y, temp;
@@ -219,6 +223,8 @@ bool dfs(int id, int state, long long hs)
 	cnt[vv] ^= 1;
 	return false;
 }
+
+//Creamos la funcion main
 int main()
 {
 	int i, j, s, p, q, vv, tst = 0, ax;
