@@ -1,71 +1,51 @@
-def solve(n, r, c, flatland):
-    # Parse flatland into a 2D grid
-    grid = [[None for _ in range(c)] for _ in range(r)]
-    for i in range(r):
-        for j in range(c):
-            if flatland[i][j] == '..':
-                grid[i][j] = 'empty'
-            elif flatland[i][j] == '##':
-                grid[i][j] = 'obstacle'
-            elif flatland[i][j].isdigit():
-                grid[i][j] = int(flatland[i][j])
-            else:
-                grid[i][j] = 'landing'
-    
-    # Generate all possible permutations of the landing/taking off order
-    events = [i for i in range(1, n+1)] + [-i for i in range(1, n+1)]
-    permutations = itertools.permutations(events, n)
-    
-    # Try each permutation and check if it results in a feasible solution
-    for perm in permutations:
-        # Assign landing spots for each plane
-        landing_spots = {}
-        for i, event in enumerate(perm):
-            if event > 0:
-                # Plane is landing
-                for j in range(r):
-                    for k in range(c):
-                        if grid[j][k] == 'landing':
-                            landing_spots[event] = (j, k)
-                            grid[j][k] = 'plane'
-                            break
-                    if event in landing_spots:
+def dfs(row, col, dest_row, dest_col, visited, path, flat_land):
+    if (row, col) == (dest_row, dest_col):
+        return True
+
+    if flat_land[row][col] != ".." or (row, col) in visited:
+        return False
+
+    visited.add((row, col))
+    path.append((row, col))
+
+    for next_row, next_col in [(row-1, col), (row+1, col), (row, col-1), (row, col+1)]:
+        if 0 <= next_row < len(flat_land) and 0 <= next_col < len(flat_land[0]):
+            if dfs(next_row, next_col, dest_row, dest_col, visited, path, flat_land):
+                return True
+
+    path.pop()
+    visited.remove((row, col))
+    return False
+
+
+def assign_parking_spaces(flat_land, events):
+    parking_spaces = {}
+    occupied_parking_spaces = set()
+
+    for event in events:
+        if event > 0:
+            plane_num = event
+            dest_row, dest_col = landing_locations[plane_num]
+            for parking_space in parking_spaces.values():
+                if parking_space == plane_num:
+                    occupied_parking_spaces.add((parking_row, parking_col))
+
+            for parking_row, parking_col in parking_locations[plane_num]:
+                if (parking_row, parking_col) not in occupied_parking_spaces:
+                    visited = set()
+                    path = []
+                    if dfs(dest_row, dest_col, parking_row, parking_col, visited, path, flat_land):
+                        parking_spaces[(parking_row, parking_col)] = plane_num
+                        occupied_parking_spaces.add((parking_row, parking_col))
                         break
             else:
-                # Plane is taking off
-                landing_spot = landing_spots[-event]
-                grid[landing_spot[0]][landing_spot[1]] = 'empty'
-        
-        # Check if all planes can be successfully parked
-        parking_spaces = {}
-        if assign_parking_spaces(grid, landing_spots, parking_spaces, 1):
-            # Solution found!
-            print('Yes:')
-            print(' '.join(f'{parking_spaces[i]:02}' for i in range(1, n+1)))
-            return
-        
-    # No feasible solution found
-    print('No')
+                # Backtrack if no feasible path found
+                for parking_row, parking_col in parking_locations[plane_num]:
+                    if (parking_row, parking_col) in parking_spaces:
+                        del parking_spaces[(parking_row, parking_col)]
+                        occupied_parking_spaces.remove((parking_row, parking_col))
+                return None
 
-def assign_parking_spaces(grid, landing_spots, parking_spaces, plane):
-    if plane > len(landing_spots):
-        # All planes have been parked
-        return True
-    
-    # Find the assigned parking space for the current plane
-    assigned_space = None
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            if grid[i][j] == plane:
-                assigned_space = landing_spots[plane]
-                break
-        if assigned_space is not None:
-            break
-    
-    # Try all possible paths from the landing spot to the assigned parking space
-    i, j = assigned_space
-    if i > 0 and grid[i-1][j] in ['empty', plane]:
-        # Try moving north
-        if grid[i-1][j] == 'empty':
-            grid[i-1][j] = plane
-        if assign_parking_spaces(grid, landing_spots, parking_spaces
+        else:
+            plane_num = -event
+            dest_row, dest_col = takeoff_locations
